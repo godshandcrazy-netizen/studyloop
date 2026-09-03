@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>StudyLoop Arena</title>
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <section id="setup" class="setup">
@@ -52,7 +52,30 @@
   <div class="unit"><small id="hello"></small><h2>몽골 제국의 성립과<br>동서 문화 교류</h2></div>
   <div id="path" class="path"></div>
  </section>
- <section id="plan" class="page"><div class="panel"><h2>🧠 목표 맞춤 커리큘럼</h2><div id="curriculum"></div></div></section>
+ <section id="plan" class="page">
+  <div class="panel">
+    <h2>🧠 목표 맞춤 커리큘럼</h2>
+    <div id="curriculum"></div>
+
+    <hr style="margin:24px 0;border:0;border-top:1px solid #dfe7ea">
+
+    <h2>📄 내 커리큘럼</h2>
+    <p class="msg">PDF를 올려서 개인 커리큘럼으로 저장할 수 있어.</p>
+
+    <label>커리큘럼 이름
+      <input id="curriculumTitle" maxlength="40" placeholder="예: 2학기 중간고사 역사">
+    </label>
+
+    <label>PDF 파일
+      <input id="curriculumPdf" type="file" accept="application/pdf">
+    </label>
+
+    <button id="uploadCurriculum" class="primary" style="width:100%;margin-top:10px;">PDF 커리큘럼 만들기</button>
+    <p id="curriculumMsg" class="msg"></p>
+
+    <div id="myCurricula"></div>
+  </div>
+</section>
  <section id="rank" class="page">
   <div class="panel">
     <h2>🏆 친구방</h2>
@@ -73,7 +96,20 @@
     </div>
 
     <p id="roomInfo" class="msg"></p>
+
+    <h3 style="margin-top:22px">주간 랭킹</h3>
     <div id="ranking"></div>
+
+    <h3 style="margin-top:24px">💬 방 채팅</h3>
+    <div id="chatList" style="max-height:320px;overflow:auto;background:#fff;border:1px solid #dfe7ea;border-radius:13px;padding:10px;"></div>
+    <div class="roomActions" style="margin-top:10px">
+      <input id="chatInput" maxlength="300" placeholder="메시지 입력">
+      <button id="sendChat">보내기</button>
+    </div>
+    <p id="chatMsg" class="msg"></p>
+
+    <h3 style="margin-top:24px">📚 방 커리큘럼</h3>
+    <div id="roomCurricula"></div>
   </div>
 </section>
  <section id="profile" class="page">
@@ -81,11 +117,24 @@
     <h2>👤 <span id="profileName"></span></h2>
     <p id="profileGoal"></p>
     <h3 id="profileXp"></h3>
+
+    <div style="margin-top:18px">
+      <label style="display:block;font-weight:850;margin-bottom:7px;">이름 변경</label>
+      <div class="roomActions">
+        <input id="newNameInput" maxlength="20" placeholder="새 이름">
+        <button id="changeNameBtn">변경</button>
+      </div>
+      <p id="nameMsg" class="msg"></p>
+    </div>
+
     <button id="resetProgressBtn" style="width:100%;margin-top:18px;background:#ff5b5b;color:white;font-weight:900;border-radius:13px;padding:14px;box-shadow:0 4px 0 #c93d3d;">
       진도·XP 초기화
     </button>
     <p id="resetMsg" class="msg"></p>
-    <button id="logoutBtn" style="width:100%;margin-top:10px;background:#445b63;color:white;font-weight:900;border-radius:13px;padding:14px;box-shadow:0 4px 0 #2d3f45;">로그아웃</button>
+
+    <button id="logoutBtn" style="width:100%;margin-top:10px;background:#445b63;color:white;font-weight:900;border-radius:13px;padding:14px;box-shadow:0 4px 0 #2d3f45;">
+      로그아웃
+    </button>
   </div>
 </section>
  <nav><button data-page="home" class="active">🏠</button><button data-page="plan">🧠</button><button data-page="rank">🏆</button><button data-page="profile">👤</button></nav>
@@ -98,5 +147,5 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=7"></script>
 </body></html>

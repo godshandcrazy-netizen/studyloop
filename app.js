@@ -198,6 +198,7 @@ async function render(){
  $("goalTop").textContent=profile.target_score;
  $("hello").textContent=profile.name+" · 목표 "+profile.target_score+"점";
  $("profileName").textContent=profile.name;
+ $("newNameInput").placeholder="현재 이름: "+profile.name;
  $("profileGoal").textContent="목표 "+profile.target_score+"점";
  $("profileXp").textContent=profile.xp+" XP";
  $("curriculum").innerHTML=plan(profile.target_score).map(x=>`<div class="curr"><b>${x[0]}</b><br><small>${x[1]}</small></div>`).join("");
@@ -506,6 +507,16 @@ async function loadRanking(roomId=null){
     return;
   }
 
+  // 현재 방 정보 보장
+  if(!currentRoom || currentRoom.id!==roomId){
+    const {data:r}=await sb
+      .from("rooms")
+      .select("*")
+      .eq("id",roomId)
+      .maybeSingle();
+    currentRoom=r||null;
+  }
+
   const {data:members,error:membersError}=await sb
     .from("room_members")
     .select("user_id")
@@ -513,10 +524,12 @@ async function loadRanking(roomId=null){
 
   if(membersError){
     console.error(membersError);
+    $("ranking").innerHTML="<p>랭킹을 불러오지 못했어.</p>";
     return;
   }
 
   const ids=(members||[]).map(x=>x.user_id);
+
   if(!ids.length){
     $("ranking").innerHTML="";
     return;
@@ -529,19 +542,67 @@ async function loadRanking(roomId=null){
 
   if(profilesError){
     console.error(profilesError);
+    $("ranking").innerHTML="<p>사용자 정보를 불러오지 못했어.</p>";
     return;
   }
 
   const sorted=(ps||[]).sort((a,b)=>b.xp-a.xp);
+  const amOwner=currentRoom && currentRoom.owner_id===user.id;
 
-  $("ranking").innerHTML=sorted.map((p,i)=>`
-    <div class="rankrow">
-      <b>${i+1}</b>
-      <span>${p.name}${p.id===user.id?" (나)":""}</span>
-      <b>${p.xp} XP</b>
-    </div>
-  `).join("");
+  $("ranking").innerHTML=sorted.map((p,i)=>{
+    const isOwner=currentRoom && p.id===currentRoom.owner_id;
+    const canKick=amOwner && p.id!==user.id;
+
+    return `
+      <div class="rankrow" style="grid-template-columns:35px 1fr auto ${canKick?'auto':''};gap:8px;align-items:center;">
+        <b>${i+1}</b>
+        <span>
+          ${p.name}${p.id===user.id?" (나)":""}
+          ${isOwner?' 👑':''}
+        </span>
+        <b>${p.xp} XP</b>
+        ${canKick?`<button class="kickBtn" data-user="${p.id}" data-name="${p.name}" style="background:#ff5b5b;color:white;font-weight:900;border-radius:10px;padding:8px 10px;">강퇴</button>`:""}
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".kickBtn").forEach(btn=>{
+    btn.onclick=()=>kickMember(btn.dataset.user,btn.dataset.name);
+  });
 }
+
+
+$("changeNameBtn").onclick=async()=>{
+  const newName=$("newNameInput").value.trim();
+
+  if(!newName){
+    $("nameMsg").textContent="새 이름을 입력해.";
+    return;
+  }
+
+  if(newName.length>20){
+    $("nameMsg").textContent="이름은 20자 이내로 입력해.";
+    return;
+  }
+
+  $("nameMsg").textContent="변경 중...";
+
+  const {error}=await sb
+    .from("profiles")
+    .update({name:newName})
+    .eq("id",user.id);
+
+  if(error){
+    console.error(error);
+    $("nameMsg").textContent="이름 변경 실패: "+error.message;
+    return;
+  }
+
+  profile.name=newName;
+  $("newNameInput").value="";
+  $("nameMsg").textContent="이름을 변경했어.";
+  await render();
+};
 
 $("resetProgressBtn").onclick=async()=>{
   const ok=confirm("정말 진도와 XP를 전부 초기화할까? 이 작업은 되돌릴 수 없어.");
@@ -599,6 +660,312 @@ $("logoutBtn").onclick=async()=>{
   $("signupFields").classList.add("hidden");
   $("loginFields").classList.remove("hidden");
   $("setupMsg").textContent="로그아웃했어.";
+};
+
+
+async function kickMember(memberId,memberName){
+  if(!currentRoom || currentRoom.owner_id!==user.id){
+    alert("방장만 강퇴할 수 있어.");
+    return;
+  }
+
+  if(memberId===user.id){
+    alert("자기 자신은 강퇴할 수 없어.");
+    return;
+  }
+
+  const ok=confirm(`${memberName}님을 방에서 강퇴할까?`);
+  if(!ok)return;
+
+  const {error}=await sb
+    .from("room_members")
+    .delete()
+    .eq("room_id",currentRoom.id)
+    .eq("user_id",memberId);
+
+  if(error){
+    console.error(error);
+    alert("강퇴 실패: "+error.message);
+    return;
+  }
+
+  $("roomInfo").textContent=`${memberName}님을 강퇴했어.`;
+  await loadRanking(currentRoom.id);
+}
+
+
+// ---------- 방 채팅 ----------
+let chatChannel=null;
+
+async function loadChat(){
+  if(!currentRoom){
+    $("chatList").innerHTML="<p class='msg'>방에 들어가면 채팅을 사용할 수 있어.</p>";
+    return;
+  }
+
+  const {data,error}=await sb
+    .from("room_messages")
+    .select("id,user_id,message,created_at,profiles(name)")
+    .eq("room_id",currentRoom.id)
+    .order("created_at",{ascending:true})
+    .limit(100);
+
+  if(error){
+    console.error(error);
+    $("chatMsg").textContent="채팅을 불러오지 못했어.";
+    return;
+  }
+
+  $("chatList").innerHTML=(data||[]).map(m=>`
+    <div style="padding:8px 4px;border-bottom:1px solid #edf1f2;">
+      <b>${m.profiles?.name||"사용자"}</b>
+      <span style="color:#7b8c91;font-size:12px;margin-left:6px">${new Date(m.created_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span>
+      <div style="margin-top:4px;line-height:1.45">${escapeHtml(m.message)}</div>
+    </div>
+  `).join("") || "<p class='msg'>아직 메시지가 없어.</p>";
+
+  $("chatList").scrollTop=$("chatList").scrollHeight;
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+$("sendChat").onclick=async()=>{
+  if(!currentRoom){
+    $("chatMsg").textContent="먼저 방에 참가해.";
+    return;
+  }
+
+  const message=$("chatInput").value.trim();
+  if(!message)return;
+
+  const {error}=await sb
+    .from("room_messages")
+    .insert({
+      room_id:currentRoom.id,
+      user_id:user.id,
+      message
+    });
+
+  if(error){
+    console.error(error);
+    $("chatMsg").textContent="메시지 전송 실패: "+error.message;
+    return;
+  }
+
+  $("chatInput").value="";
+  $("chatMsg").textContent="";
+  await loadChat();
+}
+
+async function subscribeChat(){
+  if(chatChannel){
+    await sb.removeChannel(chatChannel);
+    chatChannel=null;
+  }
+  if(!currentRoom)return;
+
+  chatChannel=sb.channel("room-chat-"+currentRoom.id)
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"room_messages",
+        filter:`room_id=eq.${currentRoom.id}`
+      },
+      async()=>{ await loadChat(); }
+    )
+    .subscribe();
+}
+
+// ---------- 개인 PDF 커리큘럼 ----------
+async function loadMyCurricula(){
+  const {data,error}=await sb
+    .from("curricula")
+    .select("*")
+    .eq("owner_id",user.id)
+    .order("created_at",{ascending:false});
+
+  if(error){
+    console.error(error);
+    $("curriculumMsg").textContent="내 커리큘럼을 불러오지 못했어.";
+    return;
+  }
+
+  $("myCurricula").innerHTML=(data||[]).map(c=>`
+    <div class="curr" style="margin-top:10px">
+      <b>${escapeHtml(c.title)}</b><br>
+      <small>${profile.name}의 커리큘럼</small><br>
+      <button class="openCurriculumBtn" data-path="${c.pdf_path}" style="margin-top:8px;padding:8px 10px;border-radius:9px;background:#22afe8;color:white;font-weight:900;">PDF 열기</button>
+      ${currentRoom?`<button class="shareCurriculumBtn" data-id="${c.id}" style="margin-top:8px;padding:8px 10px;border-radius:9px;background:#58cc42;color:white;font-weight:900;">현재 방에 공유</button>`:""}
+    </div>
+  `).join("") || "<p class='msg'>아직 만든 커리큘럼이 없어.</p>";
+
+  document.querySelectorAll(".openCurriculumBtn").forEach(btn=>{
+    btn.onclick=()=>openPdf(btn.dataset.path);
+  });
+
+  document.querySelectorAll(".shareCurriculumBtn").forEach(btn=>{
+    btn.onclick=()=>shareCurriculum(btn.dataset.id);
+  });
+}
+
+$("uploadCurriculum").onclick=async()=>{
+  const title=$("curriculumTitle").value.trim();
+  const file=$("curriculumPdf").files[0];
+
+  if(!title){
+    $("curriculumMsg").textContent="커리큘럼 이름을 입력해.";
+    return;
+  }
+
+  if(!file){
+    $("curriculumMsg").textContent="PDF 파일을 선택해.";
+    return;
+  }
+
+  if(file.type!=="application/pdf"){
+    $("curriculumMsg").textContent="PDF 파일만 업로드할 수 있어.";
+    return;
+  }
+
+  $("curriculumMsg").textContent="업로드 중...";
+
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  const path=`${user.id}/${Date.now()}_${safeName}`;
+
+  const {error:uploadError}=await sb.storage
+    .from("curriculum-pdfs")
+    .upload(path,file,{
+      contentType:"application/pdf",
+      upsert:false
+    });
+
+  if(uploadError){
+    console.error(uploadError);
+    $("curriculumMsg").textContent="PDF 업로드 실패: "+uploadError.message;
+    return;
+  }
+
+  const {error:dbError}=await sb
+    .from("curricula")
+    .insert({
+      owner_id:user.id,
+      title,
+      pdf_path:path
+    });
+
+  if(dbError){
+    console.error(dbError);
+    $("curriculumMsg").textContent="커리큘럼 저장 실패: "+dbError.message;
+    return;
+  }
+
+  $("curriculumTitle").value="";
+  $("curriculumPdf").value="";
+  $("curriculumMsg").textContent="커리큘럼을 만들었어.";
+  await loadMyCurricula();
+}
+
+async function openPdf(path){
+  const {data,error}=await sb.storage
+    .from("curriculum-pdfs")
+    .createSignedUrl(path,60*10);
+
+  if(error){
+    alert("PDF를 열지 못했어: "+error.message);
+    return;
+  }
+
+  window.open(data.signedUrl,"_blank");
+}
+
+async function shareCurriculum(curriculumId){
+  if(!currentRoom){
+    alert("먼저 방에 참가해.");
+    return;
+  }
+
+  const {error}=await sb
+    .from("room_curricula")
+    .upsert({
+      room_id:currentRoom.id,
+      curriculum_id:curriculumId,
+      shared_by:user.id
+    });
+
+  if(error){
+    alert("공유 실패: "+error.message);
+    return;
+  }
+
+  $("curriculumMsg").textContent="현재 방에 공유했어.";
+  await loadRoomCurricula();
+}
+
+async function loadRoomCurricula(){
+  if(!currentRoom){
+    $("roomCurricula").innerHTML="<p class='msg'>방에 참가하면 공유 커리큘럼을 볼 수 있어.</p>";
+    return;
+  }
+
+  const {data,error}=await sb
+    .from("room_curricula")
+    .select(`
+      id,
+      curriculum_id,
+      curricula(
+        id,
+        title,
+        pdf_path,
+        owner_id,
+        profiles(name)
+      )
+    `)
+    .eq("room_id",currentRoom.id)
+    .order("shared_at",{ascending:false});
+
+  if(error){
+    console.error(error);
+    $("roomCurricula").innerHTML="<p class='msg'>커리큘럼을 불러오지 못했어.</p>";
+    return;
+  }
+
+  $("roomCurricula").innerHTML=(data||[]).map(x=>{
+    const c=x.curricula;
+    const owner=c?.profiles?.name||"사용자";
+    return `
+      <div class="curr" style="margin-top:10px">
+        <b>${escapeHtml(owner)}의 커리큘럼</b><br>
+        <small>${escapeHtml(c?.title||"커리큘럼")}</small><br>
+        <button class="roomPdfBtn" data-path="${c?.pdf_path||""}" style="margin-top:8px;padding:8px 10px;border-radius:9px;background:#22afe8;color:white;font-weight:900;">PDF 열기</button>
+      </div>
+    `;
+  }).join("") || "<p class='msg'>아직 공유된 커리큘럼이 없어.</p>";
+
+  document.querySelectorAll(".roomPdfBtn").forEach(btn=>{
+    btn.onclick=()=>openPdf(btn.dataset.path);
+  });
+}
+
+// render() 뒤에 부가 데이터도 갱신
+const originalRender=render;
+render=async function(){
+  await originalRender();
+  await getCurrentRoom();
+  renderRoomState();
+  renderRoomBanner();
+  await loadMyCurricula();
+  await loadRoomCurricula();
+  await loadChat();
+  await subscribeChat();
 };
 
 init();
