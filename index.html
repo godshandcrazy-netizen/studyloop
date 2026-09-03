@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>StudyLoop Arena</title>
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#102126">
@@ -68,18 +68,24 @@
 
     <hr style="margin:24px 0;border:0;border-top:1px solid #dfe7ea">
 
-    <h2>📄 내 커리큘럼</h2>
-    <p class="msg">PDF를 올려서 개인 커리큘럼으로 저장할 수 있어.</p>
+    <h2>📚 내 커리큘럼</h2>
+    <p class="msg">PDF 또는 사진을 올려서 개인 커리큘럼으로 저장할 수 있어.</p>
 
     <label>커리큘럼 이름
       <input id="curriculumTitle" maxlength="40" placeholder="예: 2학기 중간고사 역사">
     </label>
 
-    <label>PDF 파일
-      <input id="curriculumPdf" type="file" accept="application/pdf">
+    <label>이 커리큘럼 목표 점수
+      <input id="curriculumTargetScore" type="number" min="0" max="100" value="90">
     </label>
 
-    <button id="uploadCurriculum" class="primary" style="width:100%;margin-top:10px;">PDF 커리큘럼 만들기</button>
+    <label>학습 자료
+      <input id="curriculumFile" type="file" accept="application/pdf,image/*,.heic,.heif">
+    </label>
+
+    <button id="uploadCurriculum" class="primary" style="width:100%;margin-top:10px;">
+      커리큘럼 만들기
+    </button>
     <p id="curriculumMsg" class="msg"></p>
 
     <div id="myCurricula"></div>
@@ -156,7 +162,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 
 <button id="installAppBtn"
   style="display:none;position:fixed;right:16px;bottom:92px;z-index:99;border:0;border-radius:999px;padding:13px 16px;background:#58cc42;color:white;font-weight:900;box-shadow:0 5px 0 #3da52f;">
