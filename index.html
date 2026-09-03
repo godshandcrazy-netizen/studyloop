@@ -3,7 +3,16 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>StudyLoop Arena</title>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#102126">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StudyLoop">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 </head>
 <body>
 <section id="setup" class="setup">
@@ -147,5 +156,45 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
+
+<button id="installAppBtn"
+  style="display:none;position:fixed;right:16px;bottom:92px;z-index:99;border:0;border-radius:999px;padding:13px 16px;background:#58cc42;color:white;font-weight:900;box-shadow:0 5px 0 #3da52f;">
+  📲 앱 설치
+</button>
+
+<script>
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById("installAppBtn");
+  if (btn) btn.style.display = "block";
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("installAppBtn");
+
+  if (btn) {
+    btn.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      btn.style.display = "none";
+    });
+  }
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(console.error);
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  const btn = document.getElementById("installAppBtn");
+  if (btn) btn.style.display = "none";
+});
+</script>
+
 </body></html>
