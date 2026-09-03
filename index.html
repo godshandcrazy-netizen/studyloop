@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>StudyLoop Arena</title>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#102126">
@@ -109,8 +109,8 @@
       <input id="curriculumExamDate" type="date">
     </label>
 
-    <label>학습 자료
-      <input id="curriculumFile" type="file" accept="application/pdf,image/*,.heic,.heif">
+    <label>학습 자료 (여러 장 선택 가능)
+      <input id="curriculumFile" type="file" accept="application/pdf,image/*,.heic,.heif" multiple>
     </label>
 
     <button id="uploadCurriculum" class="primary" style="width:100%;margin-top:10px;">
@@ -205,7 +205,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 
 <button id="installAppBtn"
   style="display:none;position:fixed;right:16px;bottom:92px;z-index:99;border:0;border-radius:999px;padding:13px 16px;background:#58cc42;color:white;font-weight:900;box-shadow:0 5px 0 #3da52f;">
