@@ -1,0 +1,5 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StudyLoop 설정</title>
+<style>body{font-family:system-ui;max-width:700px;margin:40px auto;padding:20px}input,button{font:inherit;width:100%;padding:12px;margin:7px 0}pre{white-space:pre-wrap;background:#eee;padding:15px}</style>
+<h1>config.js 만들기</h1><p>Project URL과 Publishable key를 입력하면 config.js 내용이 만들어집니다. Secret/service_role 키는 입력하지 마세요.</p>
+<input id="u" placeholder="https://xxxxx.supabase.co"><input id="k" placeholder="sb_publishable_..."><button onclick="go()">생성</button><pre id="o"></pre>
+<script>function go(){let u=document.getElementById('u').value.trim(),k=document.getElementById('k').value.trim();document.getElementById('o').textContent=`window.STUDYLOOP_CONFIG={SUPABASE_URL:${JSON.stringify(u)},SUPABASE_PUBLISHABLE_KEY:${JSON.stringify(k)}};`;}</script>

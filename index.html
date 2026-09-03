@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StudyLoop Arena</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section id="setup" class="setup">
+ <div class="card">
+  <div class="logo">StudyLoop Arena</div>
+  <h1>시험 목표를 설정하자</h1>
+  <p>이름과 목표 점수에 맞춰 커리큘럼을 만들고 친구들과 XP로 경쟁해.</p>
+  <label>이름<input id="name" maxlength="20" placeholder="이름"></label>
+  <label>목표 점수<input id="goal" type="number" min="0" max="100" value="90"></label>
+  <button id="begin">시작하기</button>
+  <p id="setupMsg" class="msg"></p>
+ </div>
+</section>
+
+<main id="app" class="app hidden">
+ <header><b>📚 역사</b><span>🔥 <b>1</b></span><span>💎 <b id="xp">0</b></span><span>🎯 <b id="goalTop">90</b></span></header>
+ <section id="home" class="page active">
+  <div class="unit"><small id="hello"></small><h2>몽골 제국의 성립과<br>동서 문화 교류</h2></div>
+  <div id="path" class="path"></div>
+ </section>
+ <section id="plan" class="page"><div class="panel"><h2>🧠 목표 맞춤 커리큘럼</h2><div id="curriculum"></div></div></section>
+ <section id="rank" class="page"><div class="panel"><h2>🏆 친구방</h2>
+   <div class="roomActions"><input id="roomName" placeholder="방 이름"><button id="createRoom">방 만들기</button></div>
+   <div class="roomActions"><input id="roomCode" placeholder="방 코드"><button id="joinRoom">참가</button></div>
+   <p id="roomInfo" class="msg"></p><div id="ranking"></div>
+ </div></section>
+ <section id="profile" class="page"><div class="panel"><h2>👤 <span id="profileName"></span></h2><p id="profileGoal"></p><h3 id="profileXp"></h3></div></section>
+ <nav><button data-page="home" class="active">🏠</button><button data-page="plan">🧠</button><button data-page="rank">🏆</button><button data-page="profile">👤</button></nav>
+</main>
+
+<div id="lesson" class="lesson hidden">
+ <div class="lessonHead"><button id="close">×</button><div class="bar"><i id="bar"></i></div><span>❤️ 5</span></div>
+ <div class="lessonBody"><small>개념 → 확인 문제</small><h2 id="ltitle"></h2><div id="concept" class="concept"></div><h3 id="question"></h3><div id="answers"></div><p id="feedback"></p><button id="next" class="hidden">다음</button></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body></html>
