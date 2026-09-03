@@ -30,7 +30,17 @@
    <div class="roomActions"><input id="roomCode" placeholder="방 코드"><button id="joinRoom">참가</button></div>
    <p id="roomInfo" class="msg"></p><div id="ranking"></div>
  </div></section>
- <section id="profile" class="page"><div class="panel"><h2>👤 <span id="profileName"></span></h2><p id="profileGoal"></p><h3 id="profileXp"></h3></div></section>
+ <section id="profile" class="page">
+  <div class="panel">
+    <h2>👤 <span id="profileName"></span></h2>
+    <p id="profileGoal"></p>
+    <h3 id="profileXp"></h3>
+    <button id="resetProgressBtn" style="width:100%;margin-top:18px;background:#ff5b5b;color:white;font-weight:900;border-radius:13px;padding:14px;box-shadow:0 4px 0 #c93d3d;">
+      진도·XP 초기화
+    </button>
+    <p id="resetMsg" class="msg"></p>
+  </div>
+</section>
  <nav><button data-page="home" class="active">🏠</button><button data-page="plan">🧠</button><button data-page="rank">🏆</button><button data-page="profile">👤</button></nav>
 </main>
 

@@ -237,4 +237,45 @@ async function loadRanking(roomId=null){
  $("ranking").innerHTML=ps.map((p,i)=>`<div class="rankrow"><b>${i+1}</b><span>${p.name}${p.id===user.id?" (나)":""}</span><b>${p.xp} XP</b></div>`).join("");
 }
 
+
+$("resetProgressBtn").onclick=async()=>{
+ const ok=confirm("정말 진도와 XP를 전부 초기화할까? 이 작업은 되돌릴 수 없어.");
+ if(!ok)return;
+
+ $("resetMsg").textContent="초기화 중...";
+
+ // XP를 0으로 초기화
+ const {error:xpError}=await sb
+   .from("profiles")
+   .update({xp:0})
+   .eq("id",user.id);
+
+ if(xpError){
+   console.error(xpError);
+   $("resetMsg").textContent="XP 초기화에 실패했어: "+xpError.message;
+   return;
+ }
+
+ // 기존 레슨 진행 기록은 삭제 대신 0점/미완료로 되돌린다.
+ // 현재 RLS의 update 정책만으로도 동작하도록 설계했다.
+ const {error:progressError}=await sb
+   .from("lesson_progress")
+   .update({
+     completed:false,
+     best_score:0,
+     updated_at:new Date().toISOString()
+   })
+   .eq("user_id",user.id);
+
+ if(progressError){
+   console.error(progressError);
+   $("resetMsg").textContent="진도 초기화에 실패했어: "+progressError.message;
+   return;
+ }
+
+ profile.xp=0;
+ $("resetMsg").textContent="진도와 XP를 모두 초기화했어.";
+ await render();
+};
+
 init();
