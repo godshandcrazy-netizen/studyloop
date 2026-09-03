@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>StudyLoop Arena</title>
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#102126">
@@ -12,6 +12,23 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="StudyLoop">
 <link rel="apple-touch-icon" href="icon-192.png">
+
+
+<style>
+.node.review-green{background:#58cc42!important;box-shadow:0 8px 0 #3da52f!important;color:white!important}
+.node.review-yellow{background:#f3c94b!important;box-shadow:0 8px 0 #b38e16!important;color:#222!important}
+.node.review-black{background:#111!important;box-shadow:0 8px 0 #000!important;color:white!important}
+.node.review-due::after{content:"복습";position:absolute;top:-14px;right:-18px;background:#ff735a;color:#fff;font-size:11px;font-weight:900;padding:4px 7px;border-radius:999px}
+.daily-card{margin:0 18px 16px;padding:16px;background:#fff;color:#203037;border-radius:16px}
+.daily-card h3{margin:0 0 7px}.daily-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.daily-item{background:#eef6f8;border-radius:12px;padding:10px;text-align:center}.daily-item b{display:block;font-size:21px}
+.mock-card{background:#fff;border:1px solid #dfe7ea;border-radius:14px;padding:14px;margin-top:10px}
+.mock-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.mock-levels button{padding:12px;border-radius:12px;background:#22afe8;color:#fff;font-weight:900}
+.mock-question{background:#fff;border:1px solid #dfe7ea;border-radius:14px;padding:16px;margin:12px 0}
+.mock-choice{display:block;width:100%;text-align:left;padding:12px;margin:8px 0;border:2px solid #dbe4e7;border-radius:12px;background:#fff;font-weight:800}
+.mock-choice.selected{border-color:#22afe8;background:#eef9fd}
+</style>
 
 </head>
 <body>
@@ -58,7 +75,16 @@
    🏆 <span id="roomBannerName"></span> · 코드 <span id="roomBannerCode"></span>
  </div>
  <section id="home" class="page active">
-  <div class="unit"><small id="hello"></small><h2>몽골 제국의 성립과<br>동서 문화 교류</h2></div>
+  <div id="dailyStudyCard" class="daily-card">
+  <h3>📅 오늘 할 분량</h3>
+  <div id="dailyStudyText" class="msg">계산 중...</div>
+  <div class="daily-grid">
+    <div class="daily-item"><b id="dailyNew">0</b><small>새 레슨</small></div>
+    <div class="daily-item"><b id="dailyReview">0</b><small>복습</small></div>
+    <div class="daily-item"><b id="dailyMock">0</b><small>모의시험</small></div>
+  </div>
+</div>
+<div class="unit"><small id="hello"></small><h2>몽골 제국의 성립과<br>동서 문화 교류</h2></div>
   <div id="path" class="path"></div>
  </section>
  <section id="plan" class="page">
@@ -69,14 +95,18 @@
     <hr style="margin:24px 0;border:0;border-top:1px solid #dfe7ea">
 
     <h2>📚 내 커리큘럼</h2>
-    <p class="msg">PDF 또는 사진을 올려서 개인 커리큘럼으로 저장할 수 있어.</p>
+    <p class="msg">커리큘럼마다 목표 점수와 시험 날짜를 따로 설정할 수 있어.</p>
 
     <label>커리큘럼 이름
       <input id="curriculumTitle" maxlength="40" placeholder="예: 2학기 중간고사 역사">
     </label>
 
-    <label>이 커리큘럼 목표 점수
+    <label>목표 점수
       <input id="curriculumTargetScore" type="number" min="0" max="100" value="90">
+    </label>
+
+    <label>시험 날짜
+      <input id="curriculumExamDate" type="date">
     </label>
 
     <label>학습 자료
@@ -87,8 +117,21 @@
       커리큘럼 만들기
     </button>
     <p id="curriculumMsg" class="msg"></p>
-
     <div id="myCurricula"></div>
+
+    <hr style="margin:26px 0;border:0;border-top:1px solid #dfe7ea">
+
+    <h2>📝 모의시험</h2>
+    <p class="msg">난이도를 골라 바로 모의시험을 볼 수 있어.</p>
+    <div class="mock-card">
+      <div class="mock-levels">
+        <button id="mockEasy">쉬움</button>
+        <button id="mockNormal">보통</button>
+        <button id="mockHard">어려움</button>
+      </div>
+      <p id="mockInfo" class="msg"></p>
+    </div>
+    <div id="mockExamArea"></div>
   </div>
 </section>
  <section id="rank" class="page">
@@ -162,7 +205,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 
 <button id="installAppBtn"
   style="display:none;position:fixed;right:16px;bottom:92px;z-index:99;border:0;border-radius:999px;padding:13px 16px;background:#58cc42;color:white;font-weight:900;box-shadow:0 5px 0 #3da52f;">
