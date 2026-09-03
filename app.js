@@ -7,41 +7,173 @@ const lessons=[
 ];
 
 const cfg=window.STUDYLOOP_CONFIG||{};
-let sb=null,user=null,profile=null,current=0,answered=false;
+let sb=null,user=null,profile=null,current=0,answered=false,currentRoom=null;
 const $=id=>document.getElementById(id);
 
 async function init(){
- if(!cfg.SUPABASE_URL||!cfg.SUPABASE_PUBLISHABLE_KEY){
-   $("setupMsg").textContent="Supabase 연결값이 아직 설정되지 않았어.";
-   return;
- }
- sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY);
- let {data:{session}}=await sb.auth.getSession();
- if(!session){
-   const r=await sb.auth.signInAnonymously();
-   if(r.error){$("setupMsg").textContent=r.error.message;return;}
-   session=r.data.session;
- }
- user=session.user;
- const {data}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
- if(data){profile=data;showApp();}
+  if(!cfg.SUPABASE_URL||!cfg.SUPABASE_PUBLISHABLE_KEY){
+    $("setupMsg").textContent="Supabase 연결값이 아직 설정되지 않았어.";
+    return;
+  }
+
+  sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY);
+
+  const {data:{session}}=await sb.auth.getSession();
+
+  if(session){
+    user=session.user;
+    const {data}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
+    if(data){
+      profile=data;
+      showApp();
+      await getCurrentRoom();
+      renderRoomState();
+  renderRoomBanner();
+      renderRoomBanner();
+      await render();
+      return;
+    }
+  }
+
+  $("setup").classList.remove("hidden");
+  $("app").classList.add("hidden");
 }
 
-$("begin").onclick=async()=>{
- if(!sb){$("setupMsg").textContent="Supabase 연결 설정이 필요해.";return}
- const name=$("name").value.trim(),goal=Number($("goal").value);
- if(!name||goal<0||goal>100){$("setupMsg").textContent="이름과 0~100 사이 목표 점수를 입력해.";return}
- const row={id:user.id,name,target_score:goal,xp:0};
- const {data,error}=await sb.from("profiles").upsert(row).select().single();
- if(error){$("setupMsg").textContent=error.message;return}
- profile=data;
- showApp();
+
+
+
+function normalizeId(raw){
+  return raw.trim().toLowerCase().replace(/[^a-z0-9._-]/g,"");
+}
+
+function idToEmail(id){
+  return `${id}@studyloop.local`;
+}
+
+$("showSignupBtn").onclick=()=>{
+  $("authTitle").textContent="회원가입";
+  $("loginFields").classList.add("hidden");
+  $("signupFields").classList.remove("hidden");
+  $("setupMsg").textContent="";
+};
+
+$("showLoginBtn").onclick=()=>{
+  $("authTitle").textContent="로그인";
+  $("signupFields").classList.add("hidden");
+  $("loginFields").classList.remove("hidden");
+  $("setupMsg").textContent="";
+};
+
+$("signupBtn").onclick=async()=>{
+  const id=normalizeId($("signupId").value);
+  const pw=$("signupPw").value;
+  const name=$("signupName").value.trim();
+  const goal=Number($("signupGoal").value);
+
+  if(id.length<3){
+    $("setupMsg").textContent="아이디는 영문/숫자로 3자 이상 입력해.";
+    return;
+  }
+  if(pw.length<6){
+    $("setupMsg").textContent="비밀번호는 6자 이상이어야 해.";
+    return;
+  }
+  if(!name){
+    $("setupMsg").textContent="이름을 입력해.";
+    return;
+  }
+  if(goal<0||goal>100){
+    $("setupMsg").textContent="목표 점수는 0~100 사이로 입력해.";
+    return;
+  }
+
+  $("setupMsg").textContent="계정 만드는 중...";
+
+  const {data,error}=await sb.auth.signUp({
+    email:idToEmail(id),
+    password:pw
+  });
+
+  if(error){
+    $("setupMsg").textContent="회원가입 실패: "+error.message;
+    return;
+  }
+
+  if(!data.session){
+    $("setupMsg").textContent="Supabase에서 Confirm email을 꺼야 아이디 방식 로그인이 가능해.";
+    return;
+  }
+
+  user=data.user;
+
+  const {data:p,error:profileError}=await sb
+    .from("profiles")
+    .upsert({
+      id:user.id,
+      name,
+      target_score:goal,
+      xp:0
+    })
+    .select()
+    .single();
+
+  if(profileError){
+    $("setupMsg").textContent="프로필 생성 실패: "+profileError.message;
+    return;
+  }
+
+  profile=p;
+  currentRoom=null;
+  showApp();
+  await render();
+};
+
+$("loginBtn").onclick=async()=>{
+  const id=normalizeId($("loginId").value);
+  const pw=$("loginPw").value;
+
+  if(!id||!pw){
+    $("setupMsg").textContent="아이디와 비밀번호를 입력해.";
+    return;
+  }
+
+  $("setupMsg").textContent="로그인 중...";
+
+  const {data,error}=await sb.auth.signInWithPassword({
+    email:idToEmail(id),
+    password:pw
+  });
+
+  if(error){
+    $("setupMsg").textContent="로그인 실패: 아이디 또는 비밀번호를 확인해.";
+    return;
+  }
+
+  user=data.user;
+
+  const {data:p,error:profileError}=await sb
+    .from("profiles")
+    .select("*")
+    .eq("id",user.id)
+    .maybeSingle();
+
+  if(profileError||!p){
+    $("setupMsg").textContent="프로필을 불러오지 못했어.";
+    return;
+  }
+
+  profile=p;
+  await getCurrentRoom();
+  showApp();
+  renderRoomState();
+  renderRoomBanner();
+  renderRoomBanner();
+  await render();
 };
 
 function showApp(){
- $("setup").classList.add("hidden");
- $("app").classList.remove("hidden");
- render();
+  $("setup").classList.add("hidden");
+  $("app").classList.remove("hidden");
 }
 
 function plan(goal){
@@ -200,82 +332,273 @@ function code(){
  return Math.random().toString(36).slice(2,8).toUpperCase();
 }
 
-$("createRoom").onclick=async()=>{
- let name=$("roomName").value.trim()||"공부방",c=code();
- let {data,error}=await sb.from("rooms").insert({code:c,name,owner_id:user.id}).select().single();
- if(error){$("roomInfo").textContent=error.message;return}
- await sb.from("room_members").insert({room_id:data.id,user_id:user.id});
- $("roomInfo").textContent=`${name} 방 코드: ${c}`;
- loadRanking(data.id);
-};
 
-$("joinRoom").onclick=async()=>{
- let c=$("roomCode").value.trim().toUpperCase();
- let {data:r,error}=await sb.from("rooms").select("*").eq("code",c).maybeSingle();
- if(error||!r){$("roomInfo").textContent="방을 찾지 못했어.";return}
- let x=await sb.from("room_members").upsert({room_id:r.id,user_id:user.id});
- if(x.error){$("roomInfo").textContent=x.error.message;return}
- $("roomInfo").textContent=`${r.name} 참가 완료 · ${r.code}`;
- loadRanking(r.id);
-};
+async function getCurrentRoom(){
+  const {data:members,error:memberError}=await sb
+    .from("room_members")
+    .select("room_id,joined_at")
+    .eq("user_id",user.id)
+    .order("joined_at",{ascending:true})
+    .limit(1);
 
-async function loadRanking(roomId=null){
- if(!roomId){
-   let {data:m}=await sb.from("room_members").select("room_id").eq("user_id",user.id).limit(1);
-   roomId=m&&m[0]?m[0].room_id:null;
- }
- if(!roomId){
-   $("ranking").innerHTML="<p>방을 만들거나 코드로 참가해.</p>";
-   return;
- }
- let {data:members}=await sb.from("room_members").select("user_id").eq("room_id",roomId);
- let ids=(members||[]).map(x=>x.user_id);
- if(!ids.length)return;
+  if(memberError){
+    console.error(memberError);
+    return null;
+  }
 
- let {data:ps}=await sb.from("profiles").select("id,name,xp").in("id",ids);
- ps=(ps||[]).sort((a,b)=>b.xp-a.xp);
- $("ranking").innerHTML=ps.map((p,i)=>`<div class="rankrow"><b>${i+1}</b><span>${p.name}${p.id===user.id?" (나)":""}</span><b>${p.xp} XP</b></div>`).join("");
+  if(!members || !members.length){
+    currentRoom=null;
+    return null;
+  }
+
+  const {data:room,error:roomError}=await sb
+    .from("rooms")
+    .select("*")
+    .eq("id",members[0].room_id)
+    .maybeSingle();
+
+  if(roomError){
+    console.error(roomError);
+    return null;
+  }
+
+  currentRoom=room||null;
+  return currentRoom;
+}
+
+function renderRoomState(){
+  const box=$("currentRoomBox");
+  const createBtn=$("createRoom");
+  const joinBtn=$("joinRoom");
+  const roomName=$("roomName");
+  const roomCode=$("roomCode");
+
+  if(currentRoom){
+    box.classList.remove("hidden");
+    $("currentRoomName").textContent=currentRoom.name;
+    $("currentRoomCode").textContent=currentRoom.code;
+
+    createBtn.disabled=true;
+    joinBtn.disabled=true;
+    roomName.disabled=true;
+    roomCode.disabled=true;
+
+    createBtn.textContent="이미 방 있음";
+    joinBtn.textContent="참가 중";
+  }else{
+    box.classList.add("hidden");
+
+    createBtn.disabled=false;
+    joinBtn.disabled=false;
+    roomName.disabled=false;
+    roomCode.disabled=false;
+
+    createBtn.textContent="방 만들기";
+    joinBtn.textContent="참가";
+  }
 }
 
 
+function renderRoomBanner(){
+  const banner=$("roomBanner");
+
+  if(currentRoom){
+    banner.classList.remove("hidden");
+    $("roomBannerName").textContent=currentRoom.name;
+    $("roomBannerCode").textContent=currentRoom.code;
+  }else{
+    banner.classList.add("hidden");
+  }
+}
+
+$("createRoom").onclick=async()=>{
+  const existing=await getCurrentRoom();
+
+  if(existing){
+    $("roomInfo").textContent=`이미 '${existing.name}' 방에 참가 중이야. 방 코드: ${existing.code}`;
+    renderRoomState();
+  renderRoomBanner();
+    await loadRanking(existing.id);
+    return;
+  }
+
+  const name=$("roomName").value.trim()||"공부방";
+  const c=code();
+
+  const {data,error}=await sb
+    .from("rooms")
+    .insert({code:c,name,owner_id:user.id})
+    .select()
+    .single();
+
+  if(error){
+    $("roomInfo").textContent=error.message;
+    return;
+  }
+
+  const joined=await sb
+    .from("room_members")
+    .insert({room_id:data.id,user_id:user.id});
+
+  if(joined.error){
+    $("roomInfo").textContent=joined.error.message;
+    return;
+  }
+
+  currentRoom=data;
+  $("roomInfo").textContent=`${name} 방 생성 완료 · 코드: ${c}`;
+  renderRoomState();
+  renderRoomBanner();
+  await loadRanking(data.id);
+};
+
+$("joinRoom").onclick=async()=>{
+  const existing=await getCurrentRoom();
+
+  if(existing){
+    $("roomInfo").textContent=`이미 '${existing.name}' 방에 참가 중이야.`;
+    renderRoomState();
+  renderRoomBanner();
+    await loadRanking(existing.id);
+    return;
+  }
+
+  const c=$("roomCode").value.trim().toUpperCase();
+
+  const {data:r,error}=await sb
+    .from("rooms")
+    .select("*")
+    .eq("code",c)
+    .maybeSingle();
+
+  if(error||!r){
+    $("roomInfo").textContent="방을 찾지 못했어.";
+    return;
+  }
+
+  const x=await sb
+    .from("room_members")
+    .insert({room_id:r.id,user_id:user.id});
+
+  if(x.error){
+    $("roomInfo").textContent=x.error.message;
+    return;
+  }
+
+  currentRoom=r;
+  $("roomInfo").textContent=`${r.name} 참가 완료 · ${r.code}`;
+  renderRoomState();
+  renderRoomBanner();
+  await loadRanking(r.id);
+};
+
+async function loadRanking(roomId=null){
+  if(!roomId){
+    const room=await getCurrentRoom();
+    roomId=room?room.id:null;
+  }
+
+  renderRoomState();
+  renderRoomBanner();
+
+  if(!roomId){
+    $("ranking").innerHTML="<p>방을 만들거나 코드로 참가해.</p>";
+    return;
+  }
+
+  const {data:members,error:membersError}=await sb
+    .from("room_members")
+    .select("user_id")
+    .eq("room_id",roomId);
+
+  if(membersError){
+    console.error(membersError);
+    return;
+  }
+
+  const ids=(members||[]).map(x=>x.user_id);
+  if(!ids.length){
+    $("ranking").innerHTML="";
+    return;
+  }
+
+  const {data:ps,error:profilesError}=await sb
+    .from("profiles")
+    .select("id,name,xp")
+    .in("id",ids);
+
+  if(profilesError){
+    console.error(profilesError);
+    return;
+  }
+
+  const sorted=(ps||[]).sort((a,b)=>b.xp-a.xp);
+
+  $("ranking").innerHTML=sorted.map((p,i)=>`
+    <div class="rankrow">
+      <b>${i+1}</b>
+      <span>${p.name}${p.id===user.id?" (나)":""}</span>
+      <b>${p.xp} XP</b>
+    </div>
+  `).join("");
+}
+
 $("resetProgressBtn").onclick=async()=>{
- const ok=confirm("정말 진도와 XP를 전부 초기화할까? 이 작업은 되돌릴 수 없어.");
- if(!ok)return;
+  const ok=confirm("정말 진도와 XP를 전부 초기화할까? 이 작업은 되돌릴 수 없어.");
+  if(!ok)return;
 
- $("resetMsg").textContent="초기화 중...";
+  $("resetMsg").textContent="초기화 중...";
 
- // XP를 0으로 초기화
- const {error:xpError}=await sb
-   .from("profiles")
-   .update({xp:0})
-   .eq("id",user.id);
+  // 1) XP = 0
+  const {error:xpError}=await sb
+    .from("profiles")
+    .update({xp:0})
+    .eq("id",user.id);
 
- if(xpError){
-   console.error(xpError);
-   $("resetMsg").textContent="XP 초기화에 실패했어: "+xpError.message;
-   return;
- }
+  if(xpError){
+    console.error(xpError);
+    $("resetMsg").textContent="XP 초기화 실패: "+xpError.message;
+    return;
+  }
 
- // 기존 레슨 진행 기록은 삭제 대신 0점/미완료로 되돌린다.
- // 현재 RLS의 update 정책만으로도 동작하도록 설계했다.
- const {error:progressError}=await sb
-   .from("lesson_progress")
-   .update({
-     completed:false,
-     best_score:0,
-     updated_at:new Date().toISOString()
-   })
-   .eq("user_id",user.id);
+  // 2) 5개 레슨 모두 미완료/0점으로 강제 저장.
+  // 기존 행이 없어도 insert, 있으면 update가 된다.
+  const now=new Date().toISOString();
+  const resetRows=lessons.map((_,idx)=>({
+    user_id:user.id,
+    lesson_id:String(idx),
+    completed:false,
+    best_score:0,
+    updated_at:now
+  }));
 
- if(progressError){
-   console.error(progressError);
-   $("resetMsg").textContent="진도 초기화에 실패했어: "+progressError.message;
-   return;
- }
+  const {error:progressError}=await sb
+    .from("lesson_progress")
+    .upsert(resetRows);
 
- profile.xp=0;
- $("resetMsg").textContent="진도와 XP를 모두 초기화했어.";
- await render();
+  if(progressError){
+    console.error(progressError);
+    $("resetMsg").textContent="진도 초기화 실패: "+progressError.message;
+    return;
+  }
+
+  profile.xp=0;
+  $("resetMsg").textContent="진도와 XP를 모두 초기화했어.";
+  await render();
+};
+
+
+$("logoutBtn").onclick=async()=>{
+  await sb.auth.signOut();
+  user=null;
+  profile=null;
+  currentRoom=null;
+  $("app").classList.add("hidden");
+  $("setup").classList.remove("hidden");
+  $("authTitle").textContent="로그인";
+  $("signupFields").classList.add("hidden");
+  $("loginFields").classList.remove("hidden");
+  $("setupMsg").textContent="로그아웃했어.";
 };
 
 init();
