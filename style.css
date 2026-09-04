@@ -4,3 +4,178 @@
 .app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:82px}header{height:68px;display:flex;align-items:center;justify-content:space-around;font-size:17px}.unit{margin:0 18px 26px;padding:18px;background:var(--blue);border-radius:20px;box-shadow:0 7px 0 var(--bd)}.unit small{font-weight:900;color:#cdf1ff}.unit h2{margin:7px 0 0}.page{display:none}.page.active{display:block}.path{min-height:650px}.nodeRow{height:125px;position:relative}.node{position:absolute;width:86px;height:86px;border-radius:50%;background:var(--blue);box-shadow:0 8px 0 var(--bd);color:white;font-size:33px;font-weight:900}.node.done{background:var(--green);box-shadow:0 8px 0 var(--gd)}.node:nth-child(1){}.nodeRow:nth-child(odd) .node{left:calc(50% - 75px)}.nodeRow:nth-child(even) .node{left:calc(50% + 5px)}.panel{margin:18px}.curr,.rankrow{background:white;border:1px solid #dfe7ea;border-radius:13px;padding:13px;margin:9px 0}.curr small{color:#687b82}.rankrow{display:grid;grid-template-columns:35px 1fr auto}.roomActions{display:flex;gap:8px;margin:12px 0}.roomActions input{margin:0}.roomActions button{white-space:nowrap;padding:10px}.msg{color:#64777e;line-height:1.5}
 nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);height:76px;background:#112429;border-top:3px solid #314b52;display:flex;justify-content:space-around;align-items:center}nav button{font-size:28px;background:transparent}nav button.active{background:#173b47;border:3px solid #3e91b0;border-radius:12px;padding:6px 9px}
 .lesson{position:fixed;inset:0;z-index:20;background:#eef3f5;color:var(--ink);overflow:auto}.lessonHead{display:flex;align-items:center;gap:12px;padding:15px 18px}.lessonHead button{font-size:28px;background:transparent}.bar{height:11px;flex:1;background:#d6e0e3;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}.lessonBody{max-width:520px;margin:auto;padding:10px 18px 40px}.concept{background:white;border:1px solid #dce5e8;border-radius:16px;padding:17px;line-height:1.7;font-size:17px}.ans{display:block;width:100%;text-align:left;background:white;border:2px solid #dbe4e7;border-radius:13px;padding:14px;margin:9px 0;font-weight:800}.ans.good{background:#ebfaee;border-color:#62c675}.ans.bad{background:#fff0f0;border-color:#e18d8d}#feedback{font-weight:800;line-height:1.5}#next{width:100%}
+/* ===== StudyLoop mobile layout fix ===== */
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  margin:0;
+  padding:0;
+}
+
+#app{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+.page{
+  width:100%;
+  max-width:100%;
+  padding:16px 16px 110px;
+  margin:0 auto;
+}
+
+.panel{
+  width:100%;
+  max-width:680px;
+  margin:0 auto 18px;
+  padding:22px 18px;
+  border-radius:22px;
+}
+
+.box,
+.currCard,
+.curr,
+.rankrow{
+  width:100%;
+  max-width:100%;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+
+.roomActions,
+.buttonRow,
+.row{
+  display:flex;
+  width:100%;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.roomActions input{
+  flex:1 1 220px;
+  min-width:0;
+}
+
+.roomActions button{
+  flex:0 0 auto;
+}
+
+.buttonRow button{
+  flex:1 1 auto;
+  min-width:90px;
+}
+
+#ranking{
+  width:100%;
+}
+
+.rankrow{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto auto;
+  gap:8px;
+  align-items:center;
+}
+
+.rankrow span{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
+#chatList{
+  width:100%;
+  max-width:100%;
+}
+
+header{
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+
+header *{
+  min-width:0;
+}
+
+nav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  width:100%;
+  z-index:1000;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+nav button{
+  min-width:0;
+  width:100%;
+}
+
+main{
+  width:100%;
+  max-width:100%;
+  padding-bottom:100px;
+}
+
+@media(max-width:600px){
+  .page{
+    padding:12px 12px 105px;
+  }
+
+  .panel{
+    padding:20px 16px;
+    border-radius:20px;
+  }
+
+  .panel h2{
+    font-size:28px;
+    line-height:1.2;
+  }
+
+  .roomActions{
+    display:grid;
+    grid-template-columns:1fr auto;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .rankrow{
+    grid-template-columns:28px minmax(0,1fr) auto;
+  }
+
+  .rankrow .kickBtn,
+  .rankrow .danger{
+    grid-column:2 / -1;
+    justify-self:end;
+  }
+
+  button{
+    max-width:100%;
+  }
+
+  .currCard{
+    overflow:hidden;
+  }
+}
