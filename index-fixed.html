@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>StudyLoop Arena</title>
+<link rel="stylesheet" href="style.css?v=20260904-final">
+
+</head>
+<body>
+<section id="setup" class="setup">
+  <div class="card" style="width:min(440px,100%)">
+    <div class="logo"><b>StudyLoop Arena</b></div>
+    <div class="authTabs"><button id="showLoginBtn" class="secondary">로그인</button><button id="showSignupBtn" class="smallBtn">회원가입</button></div>
+    <h2 id="authTitle">로그인</h2>
+    <div id="loginFields">
+      <label class="field">아이디<input id="loginId" autocomplete="username"></label>
+      <label class="field">비밀번호<input id="loginPw" type="password" autocomplete="current-password"></label>
+      <button id="loginBtn" class="primary" style="width:100%">로그인</button>
+    </div>
+    <div id="signupFields" class="hidden">
+      <label class="field">아이디<input id="signupId"></label>
+      <label class="field">비밀번호<input id="signupPw" type="password"></label>
+      <label class="field">이름<input id="signupName" maxlength="20"></label>
+      <label class="field">기본 목표 점수<input id="signupGoal" type="number" min="0" max="100" value="90"></label>
+      <button id="signupBtn" class="primary" style="width:100%">회원가입</button>
+    </div>
+    <p id="setupMsg" class="msg"></p>
+  </div>
+</section>
+
+<main id="app" class="app hidden">
+<header><b>📚 StudyLoop</b><span>⏳ <b id="xp">0</b> XP</span><span>🎯 <b id="goalTop">90</b></span></header>
+
+<section id="home" class="page active">
+  <div class="unit"><small id="hello"></small><h2 id="homeTitle">커리큘럼을 선택해</h2></div>
+  <div class="box"><b>현재 커리큘럼</b><select id="activeCurriculum"><option value="">선택</option></select><p id="activeInfo" class="msg"></p></div>
+  <div id="dailyBox" class="box"></div>
+  <div id="path" class="path"></div>
+  <div id="emptyLessons" class="box msg">커리큘럼을 만들면 레슨이 여기에 나타나.</div>
+</section>
+
+<section id="plan" class="page">
+ <div class="panel">
+  <h2>🧠 내 커리큘럼</h2>
+  <label class="field">이름<input id="curriculumTitle" placeholder="예: 과학 중간고사"></label>
+  <div class="row"><label class="field">목표 점수<input id="curriculumTargetScore" type="number" min="0" max="100" value="90"></label><label class="field">시험 날짜<input id="curriculumExamDate" type="date"></label></div>
+  <label class="field">난이도<select id="curriculumDifficulty"><option value="easy">쉬움</option><option value="normal" selected>보통</option><option value="hard">어려움</option></select></label>
+  <label class="field">PDF/사진 여러 개<input id="curriculumPdf" type="file" multiple accept="application/pdf,image/*,.heic,.heif,.avif,.tif,.tiff"></label>
+  <button id="uploadCurriculum" class="primary" style="width:100%">커리큘럼 만들기</button>
+  <p id="curriculumMsg" class="msg"></p>
+  <div id="myCurricula"></div>
+ </div>
+ <div class="panel"><h2>📝 모의시험</h2><div class="buttonRow"><button id="mockEasy" class="smallBtn">쉬움</button><button id="mockNormal" class="secondary">보통</button><button id="mockHard" class="smallBtn">어려움</button></div><p id="mockResult" class="msg"></p><div id="mockQuestions"></div></div>
+</section>
+
+<section id="rank" class="page">
+ <div class="panel"><h2>🏆 친구방</h2>
+  <div id="roomBanner" class="box hidden"><b id="roomBannerName"></b> · 코드 <b id="roomBannerCode"></b></div>
+  <div id="currentRoomBox" class="box hidden"><b id="currentRoomName"></b><br>방 코드: <b id="currentRoomCode"></b></div>
+  <div class="roomActions"><input id="roomName" placeholder="방 이름"><button id="createRoom" class="primary">방 만들기</button></div>
+  <div class="roomActions"><input id="roomCode" placeholder="방 코드"><button id="joinRoom" class="secondary">참가</button></div>
+  <p id="roomInfo" class="msg"></p><div id="ranking"></div>
+  <h3>💬 채팅</h3><div id="chatList" class="box" style="max-height:260px;overflow:auto"></div><div class="roomActions"><input id="chatInput" maxlength="300" placeholder="메시지"><button id="sendChat" class="secondary">전송</button></div><p id="chatMsg" class="msg"></p>
+  <h3>📚 공유 커리큘럼</h3><div id="roomCurricula"></div>
+ </div>
+</section>
+
+<section id="profile" class="page"><div class="panel"><h2>👤 <span id="profileName"></span></h2><p id="profileGoal"></p><h3 id="profileXp"></h3><div class="roomActions"><input id="newNameInput" placeholder="새 이름"><button id="changeNameBtn" class="secondary">이름 변경</button></div><p id="nameMsg" class="msg"></p><button id="resetProgressBtn" class="danger">진도·XP 초기화</button><p id="resetMsg" class="msg"></p><button id="logoutBtn" class="smallBtn">로그아웃</button></div></section>
+<nav><button data-page="home" class="active">🏠</button><button data-page="plan">🧠</button><button data-page="rank">🏆</button><button data-page="profile">👤</button></nav>
+</main>
+
+<div id="lesson" class="lesson hidden"><div class="lessonHead"><button id="close" class="smallBtn">×</button><div class="bar"><i id="bar"></i></div></div><div class="lessonBody"><h2 id="ltitle"></h2><div id="concept"></div><h3 id="question"></h3><div id="answers"></div><p id="feedback" class="msg"></p><button id="next" class="primary hidden">다음</button></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js?v=20260904-final"></script>
+</body></html>

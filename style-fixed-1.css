@@ -1,0 +1,108 @@
+:root{
+  --bg:#102126;
+  --panel:#f8fbfc;
+  --blue:#22afe8;
+  --blue-dark:#087aa8;
+  --green:#58cc42;
+  --green-dark:#3da52f;
+  --white:#f7fbfd;
+  --ink:#203037;
+  --muted:#64777e;
+  --border:#dfe7ea;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--white);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{border:0;cursor:pointer}
+.hidden{display:none!important}
+
+.setup{min-height:100vh;display:grid;place-items:center;padding:22px}
+.card,.panel{background:var(--panel);color:var(--ink);border-radius:22px;padding:22px}
+.card{width:min(470px,100%)}
+.logo{font-size:26px;font-weight:950;color:#1596cc;margin-bottom:14px}
+.card h1{font-size:29px}.card p{line-height:1.6;color:#62767d}
+label{display:block;font-weight:850;margin:16px 0}
+input,select{display:block;width:100%;min-width:0;padding:14px;border:2px solid #dbe5e8;border-radius:13px;margin-top:7px;background:#fff;color:var(--ink)}
+
+.primary,.secondary,.danger,.smallBtn,.roomActions button,#next{
+  color:#fff;font-weight:900;border-radius:13px;padding:12px 14px;min-height:44px
+}
+.primary,.roomActions button,#next{background:var(--green);box-shadow:0 4px 0 var(--green-dark)}
+.secondary{background:var(--blue);box-shadow:0 4px 0 var(--blue-dark)}
+.danger{background:#ff5b5b;box-shadow:0 4px 0 #d93f3f}
+.smallBtn{background:#eef3f5;color:#334;box-shadow:none}
+.card>button{width:100%}
+
+.app{width:100%;max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:92px}
+header{height:68px;display:flex;align-items:center;gap:12px;padding:0 16px;color:var(--white)}
+header b:first-child{margin-right:auto}
+header span{white-space:nowrap}
+
+.page{display:none;width:100%;padding-bottom:18px}
+.page.active{display:block}
+.unit{margin:0 18px 20px;padding:18px;background:var(--blue);border-radius:20px;box-shadow:0 7px 0 var(--blue-dark)}
+.unit small{font-weight:900;color:#cdf1ff}.unit h2{margin:7px 0 0}
+.box,.panel{margin:18px}
+.box{background:var(--panel);color:var(--ink);border-radius:18px;padding:16px}
+.panel{margin:18px}
+.panel h2{margin-top:0}.panel h3{margin:24px 0 10px}
+.msg{color:var(--muted);line-height:1.5;white-space:pre-wrap}
+
+.path{min-height:320px}
+.lessonNode{display:block;width:78px;height:78px;border-radius:50%;margin:22px auto;background:var(--blue);box-shadow:0 8px 0 var(--blue-dark);color:white;font-size:30px;font-weight:900;position:relative}
+.lessonNode.done{background:var(--green);box-shadow:0 8px 0 var(--green-dark)}
+.lessonNode.review1{background:#f3c94b;color:#222;box-shadow:0 8px 0 #c6a62f}
+.lessonNode.review2{background:#111;box-shadow:0 8px 0 #000}
+.badge{position:absolute;right:-18px;top:-7px;font-size:10px;background:#ff735a;padding:4px 6px;border-radius:20px}
+
+.authTabs,.row,.roomActions,.buttonRow{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.authTabs button,.row>*{flex:1 1 0}
+.roomActions{margin:12px 0}
+.roomActions input{margin:0;flex:1 1 180px}
+.roomActions button{white-space:nowrap;flex:0 0 auto;padding:10px 14px}
+.buttonRow button{flex:1 1 120px}
+
+.currCard,.curr,.rankrow{background:white;border:1px solid var(--border);border-radius:13px;padding:13px;margin:9px 0;color:var(--ink);max-width:100%;overflow-wrap:anywhere}
+.currCard.active{border:3px solid var(--green)}
+.curr small{color:#687b82}
+#ranking{width:100%}
+#ranking>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#ranking>div b:first-child{margin-right:auto}
+#chatList{width:100%;max-width:100%;background:white}
+
+.daily{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.daily div{background:#f0f6f8;border-radius:12px;padding:10px;text-align:center}
+.daily b{display:block;font-size:20px}
+
+.lesson{position:fixed;inset:0;z-index:50;background:#eef3f5;color:var(--ink);overflow:auto}
+.lessonHead{display:flex;align-items:center;gap:12px;padding:15px 18px}
+.lessonHead button{font-size:28px;background:transparent;box-shadow:none;color:var(--ink)}
+.bar{height:11px;flex:1;background:#d6e0e3;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green)}
+.lessonBody{max-width:520px;margin:auto;padding:10px 18px 40px}
+#concept{background:white;border:1px solid #dce5e8;border-radius:16px;padding:17px;line-height:1.7;font-size:17px}
+.ans{display:block;width:100%;text-align:left;background:white;border:2px solid #dbe4e7;border-radius:13px;padding:14px;margin:9px 0;font-weight:800}
+.ans.good{background:#ebfaee;border-color:#62c675}.ans.bad{background:#fff0f0;border-color:#e18d8d}
+#feedback{font-weight:800;line-height:1.5}#next{width:100%}
+
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);height:76px;background:#112429;border-top:3px solid #314b52;display:flex;justify-content:space-around;align-items:center;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
+nav button{font-size:28px;background:transparent;color:inherit;padding:6px 9px;border-radius:12px}
+nav button.active{background:#173b47;border:3px solid #3e91b0}
+
+@media(max-width:600px){
+  .app{max-width:100%}
+  header{height:62px;padding:0 12px;font-size:14px}
+  .unit,.box,.panel{margin:12px}
+  .panel,.box{padding:15px}
+  .row{display:grid;grid-template-columns:1fr}
+  .roomActions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+  .roomActions input{width:100%;min-width:0}
+  .roomActions button{min-width:86px}
+  .buttonRow{display:grid;grid-template-columns:1fr 1fr}
+  .buttonRow button{width:100%}
+  .daily{gap:6px}
+  .daily div{padding:8px 4px}
+  .currCard{overflow:hidden}
+}
